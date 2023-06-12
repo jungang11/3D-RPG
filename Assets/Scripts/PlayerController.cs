@@ -6,7 +6,8 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private float walkSpeed;   // 이동 속도
-    [SerializeField] private float runSpeed;   // 이동 속도
+    [SerializeField] private float runSpeed;    // 이동 속도
+    [SerializeField] private float crouchSpeed; // 앉기 속도
     [SerializeField] private float jumpForce;   // 점프 속도
     private float applySpeed;
 
@@ -15,8 +16,16 @@ public class PlayerController : MonoBehaviour
     private Vector3 moveDir;
     private float ySpeed;
 
+    // 상태 변수
     private bool isGrounded;
     private bool isWalking;
+    private bool isCrouching;
+
+    //앉았을 때 얼마나 앉을 지 결정하는 변수.
+    [SerializeField]
+    private float crouchPosY;
+    private float originPosY;
+    private float applyCrouchPosY;
 
     private void Awake()
     {
@@ -24,10 +33,23 @@ public class PlayerController : MonoBehaviour
         anim = GetComponent<Animator>();
     }
 
-    private void Update()
+    private void Start()
     {
-        Move();
-        Fall();
+        isCrouching = false;
+        originPosY = Camera.main.transform.localPosition.y;
+        applyCrouchPosY = originPosY;
+    }
+
+    private void OnEnable()
+    {
+        StartCoroutine(MoveRoutine());
+        StartCoroutine(JumpRoutine());
+        StartCoroutine(CrouchRoutine());
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
     }
 
     private void FixedUpdate()
@@ -35,33 +57,36 @@ public class PlayerController : MonoBehaviour
         GroundCheck();
     }
 
-    private void Move()
+    private IEnumerator MoveRoutine()
     {
-        if (moveDir.magnitude == 0)
+        while (true)
         {
-            applySpeed = Mathf.Lerp(applySpeed, 0, 0.1f);
+            if (moveDir.magnitude == 0)
+            {
+                applySpeed = Mathf.Lerp(applySpeed, 0, 0.1f);
+                anim.SetFloat("MoveSpeed", applySpeed);
+                yield return null;
+                continue;
+            }
+
+            if (isWalking)
+                applySpeed = Mathf.Lerp(applySpeed, walkSpeed, 0.1f);
+            else if (isCrouching)
+                applySpeed = Mathf.Lerp(applySpeed, crouchSpeed, 0.1f);
+            else
+                applySpeed = Mathf.Lerp(applySpeed, runSpeed, 0.1f);
+
+            Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z).normalized;
+            Vector3 rightVec = new Vector3(Camera.main.transform.right.x, 0, Camera.main.transform.right.z).normalized;
+
+            controller.Move(forwardVec * moveDir.z * applySpeed * Time.deltaTime);
+            controller.Move(rightVec * moveDir.x * applySpeed * Time.deltaTime);
             anim.SetFloat("MoveSpeed", applySpeed);
-            return;
-        }
 
-        if (isWalking)
-        {
-            applySpeed = Mathf.Lerp(applySpeed, walkSpeed, 0.1f);
+            Quaternion lookRotation = Quaternion.LookRotation(forwardVec * moveDir.z + rightVec * moveDir.x);
+            transform.rotation = Quaternion.Lerp(lookRotation, transform.rotation, 0.1f);
+            yield return null;
         }
-        else
-        {
-            applySpeed = Mathf.Lerp(applySpeed, runSpeed, 0.1f);
-        }
-
-        Vector3 forwardVec = new Vector3(Camera.main.transform.forward.x, 0, Camera.main.transform.forward.z).normalized;
-        Vector3 rightVec = new Vector3(Camera.main.transform.right.x, 0, Camera.main.transform.right.z).normalized;
-        
-        controller.Move(forwardVec * moveDir.z * applySpeed * Time.deltaTime);
-        controller.Move(rightVec * moveDir.x * applySpeed * Time.deltaTime);
-        anim.SetFloat("MoveSpeed", applySpeed);
-
-        Quaternion lookRotation = Quaternion.LookRotation(forwardVec * moveDir.z + rightVec * moveDir.x);
-        transform.rotation = Quaternion.Lerp(lookRotation, transform.rotation, 0.1f);
     }
 
     private void OnMove(InputValue value)
@@ -72,35 +97,74 @@ public class PlayerController : MonoBehaviour
 
     private void OnWalk(InputValue value)
     {
-        isWalking = value.isPressed;
+        if(!isCrouching)
+            isWalking = value.isPressed;
     }
 
-    private void Fall()
+    private IEnumerator JumpRoutine()
     {
-        // 아래 방향으로 계속해서 중력을 받음
-        ySpeed += Physics.gravity.y * Time.deltaTime;
+        while (true)
+        {
+            // 아래 방향으로 계속해서 중력을 받음
+            ySpeed += Physics.gravity.y * Time.deltaTime;
 
-        if (isGrounded && ySpeed < 0)
-            ySpeed = 0;
+            if (isGrounded && ySpeed < 0)
+                ySpeed = 0;
 
-        controller.Move(Vector3.up * ySpeed * Time.deltaTime);
-    }
+            controller.Move(Vector3.up * ySpeed * Time.deltaTime);
 
-    private void Jump()
-    {
-        ySpeed = jumpForce;
+            yield return null;
+        }
     }
 
     private void OnJump(InputValue value)
     {
+        if (isCrouching)
+        {
+            isCrouching = false;
+            anim.SetBool("Crouching", false);
+        }
         anim.SetTrigger("IsJump");
-        Jump();
+        ySpeed = jumpForce;
+    }
+
+    // Crouching 중 1인칭 카메라 조정
+    private IEnumerator CrouchRoutine()
+    {
+        float posY = Camera.main.transform.localPosition.y;
+        int count = 0;
+
+        while (posY != applyCrouchPosY)
+        {
+            count++;
+            posY = Mathf.Lerp(posY, applyCrouchPosY, 0.1f);
+            Camera.main.transform.localPosition = new Vector3(0, posY, 0);
+            if (count > 15)
+                break;
+            yield return null;
+        }
+        Camera.main.transform.localPosition = new Vector3(0, applyCrouchPosY, 0f);
+    }
+
+    private void OnCrouch(InputValue value)
+    {
+        isCrouching = !isCrouching;
+        
+        if (isCrouching)
+        {
+            applySpeed = crouchSpeed;
+            anim.SetBool("Crouching", true);
+        }
+        else
+        {
+            applySpeed = walkSpeed;
+            anim.SetBool("Crouching", false);
+        }
     }
 
     private void GroundCheck()
     {
         RaycastHit hit;
-        // SphereCast -> 직선 레이저가 아니라 원 모양 레이저로 판단
-        isGrounded = Physics.SphereCast(transform.position + Vector3.up * 1, 0.5f, Vector3.down, out hit, 0.6f);
+        isGrounded = Physics.SphereCast(transform.position + Vector3.up * 1, 0.5f, Vector3.down, out hit, 0.5f);
     }
 }
