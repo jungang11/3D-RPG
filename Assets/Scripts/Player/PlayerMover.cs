@@ -1,9 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class PlayerMover : MonoBehaviour
 {
     [SerializeField] private float walkSpeed;   // 이동 속도
     [SerializeField] private float runSpeed;    // 이동 속도
@@ -19,10 +20,9 @@ public class PlayerController : MonoBehaviour
     // 상태 변수
     private bool isGrounded;
     private bool isWalking;
-    private bool isCrouching;
+    public bool isCrouching;
 
     //앉았을 때 얼마나 앉을 지 결정하는 변수.
-    [SerializeField]
     private float crouchPosY;
     private float originPosY;
     private float applyCrouchPosY;
@@ -44,7 +44,6 @@ public class PlayerController : MonoBehaviour
     {
         StartCoroutine(MoveRoutine());
         StartCoroutine(JumpRoutine());
-        StartCoroutine(CrouchRoutine());
     }
 
     private void OnDisable()
@@ -122,44 +121,40 @@ public class PlayerController : MonoBehaviour
         if (isCrouching)
         {
             isCrouching = false;
+            applySpeed = walkSpeed;
             anim.SetBool("Crouching", false);
+            controller.center = new Vector3(0f, 1f, 0f);
+            controller.height = 1.8f;
+            return;
         }
         anim.SetTrigger("IsJump");
         ySpeed = jumpForce;
     }
 
-    // Crouching 중 1인칭 카메라 조정
-    private IEnumerator CrouchRoutine()
+    public IEnumerator CrouchRoutine()
     {
-        float posY = Camera.main.transform.localPosition.y;
-        int count = 0;
-
-        while (posY != applyCrouchPosY)
-        {
-            count++;
-            posY = Mathf.Lerp(posY, applyCrouchPosY, 0.1f);
-            Camera.main.transform.localPosition = new Vector3(0, posY, 0);
-            if (count > 15)
-                break;
-            yield return null;
-        }
-        Camera.main.transform.localPosition = new Vector3(0, applyCrouchPosY, 0f);
-    }
-
-    private void OnCrouch(InputValue value)
-    {
-        isCrouching = !isCrouching;
-        
         if (isCrouching)
         {
             applySpeed = crouchSpeed;
             anim.SetBool("Crouching", true);
+            controller.center = new Vector3(0f, 0.8f, 0f);
+            controller.height = 1.4f;
         }
         else
         {
             applySpeed = walkSpeed;
             anim.SetBool("Crouching", false);
+            controller.center = new Vector3(0f, 1f, 0f);
+            controller.height = 1.8f;
         }
+        yield return null;
+    }
+
+    private void OnCrouch(InputValue value)
+    {
+        isCrouching = !isCrouching;
+
+        StartCoroutine(CrouchRoutine());
     }
 
     private void GroundCheck()

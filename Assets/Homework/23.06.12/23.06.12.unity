@@ -1756,7 +1756,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 55872050}
-  m_LocalRotation: {x: 0.21736723, y: -0.0029970033, z: 0.0006674113, w: 0.9760851}
+  m_LocalRotation: {x: 0.21736723, y: -0.0029969655, z: 0.000667403, w: 0.9760851}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -25435,7 +25435,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 965473620}
-  m_LocalRotation: {x: 0.2173672, y: -0.002997003, z: 0.00066741125, w: 0.9760851}
+  m_LocalRotation: {x: 0.2173672, y: -0.0029969653, z: 0.00066740287, w: 0.9760851}
   m_LocalPosition: {x: 4.829741, y: 1.3816928, z: 40.322258}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -26396,6 +26396,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 858912893, guid: bbfa72abb2e1afc44b3de9fd56b5a6df, type: 3}
+      propertyPath: crouchPosY
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 858912893, guid: bbfa72abb2e1afc44b3de9fd56b5a6df, type: 3}
       propertyPath: crouchSpeed
       value: 1
