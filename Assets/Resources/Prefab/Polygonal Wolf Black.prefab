@@ -1,5 +1,57 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2105649650
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2105649651}
+  - component: {fileID: 2105649652}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2105649651
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2105649650}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.37, z: 0.756}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8268598448784526908}
+  m_RootOrder: 16
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2105649652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2105649650}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81ff81c7cb97d674f9979af69633aad9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  range: 5
+  angle: 60
+  targetMask:
+    serializedVersion: 2
+    m_Bits: 8
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 1
 --- !u!1 &8261865721874677200
 GameObject:
   m_ObjectHideFlags: 0
@@ -454,7 +506,7 @@ GameObject:
   - component: {fileID: 8268598448784526908}
   - component: {fileID: 8357890076978091618}
   - component: {fileID: 8263709888448228622}
-  - component: {fileID: 8263709888448228623}
+  - component: {fileID: 95605707741609892}
   m_Layer: 0
   m_Name: Polygonal Wolf Black
   m_TagString: Untagged
@@ -490,6 +542,7 @@ Transform:
   - {fileID: 8268366803143463690}
   - {fileID: 8268205953715832380}
   - {fileID: 8268257201851931282}
+  - {fileID: 2105649651}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -524,11 +577,11 @@ CapsuleCollider:
   m_Material: {fileID: 0}
   m_IsTrigger: 0
   m_Enabled: 1
-  m_Radius: 0.7
+  m_Radius: 0.6
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 0.43, z: -0.13}
---- !u!114 &8263709888448228623
+--- !u!114 &95605707741609892
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -537,7 +590,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8262126069847513294}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 666bc27380c7b094ea6cd63c6f6c8b81, type: 3}
+  m_Script: {fileID: 11500000, guid: 93224e954b0eed44daf8c0a04afb3ec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   hp: 9

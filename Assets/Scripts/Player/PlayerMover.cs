@@ -6,11 +6,18 @@ using UnityEngine.InputSystem;
 
 public class PlayerMover : MonoBehaviour
 {
-    [SerializeField] private float walkSpeed;   // 이동 속도
-    [SerializeField] private float runSpeed;    // 이동 속도
-    [SerializeField] private float crouchSpeed; // 앉기 속도
-    [SerializeField] private float jumpForce;   // 점프 속도
+    [SerializeField] private bool debug;
+
+    [SerializeField] private float walkSpeed;       // 이동 속도
+    [SerializeField] private float runSpeed;        // 이동 속도
+    [SerializeField] private float crouchSpeed;     // 앉기 속도
+    [SerializeField] private float jumpForce;       // 점프 속도
     private float applySpeed;
+
+    //[SerializeField] FootStepSound footStepSound;   // 발소리
+    [SerializeField] private float walkStepRange;   // 걷기 소리 범위
+    [SerializeField] private float runStepRange;    // 달리기 소리 범위
+    [SerializeField] private float crouchStepRange; // 앉기 소리 범위
 
     private CharacterController controller;
     private Animator anim;
@@ -22,11 +29,6 @@ public class PlayerMover : MonoBehaviour
     private bool isWalking;
     public bool isCrouching;
 
-    //앉았을 때 얼마나 앉을 지 결정하는 변수.
-    private float crouchPosY;
-    private float originPosY;
-    private float applyCrouchPosY;
-
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -36,8 +38,6 @@ public class PlayerMover : MonoBehaviour
     private void Start()
     {
         isCrouching = false;
-        originPosY = Camera.main.transform.localPosition.y;
-        applyCrouchPosY = originPosY;
     }
 
     private void OnEnable()
@@ -56,6 +56,7 @@ public class PlayerMover : MonoBehaviour
         GroundCheck();
     }
 
+    float lastStepTime = 0.5f;
     private IEnumerator MoveRoutine()
     {
         while (true)
@@ -84,8 +85,46 @@ public class PlayerMover : MonoBehaviour
 
             Quaternion lookRotation = Quaternion.LookRotation(forwardVec * moveDir.z + rightVec * moveDir.x);
             transform.rotation = Quaternion.Lerp(lookRotation, transform.rotation, 0.1f);
+            // 발소리 재생
+            lastStepTime -= Time.deltaTime;
+            if (lastStepTime < 0)
+            {
+                lastStepTime = 0.5f;
+                GenerateFootStepSound();
+            }
             yield return null;
         }
+    }
+
+    private void GenerateFootStepSound()
+    {
+        Collider[] colliders = Physics.OverlapSphere(transform.position, FootStepRange());
+        foreach(Collider collider in colliders)
+        {
+            IListenable listenable = collider.GetComponent<IListenable>();
+            listenable?.Listen(transform);
+        }
+    }
+
+    private float FootStepRange()
+    {
+        if (isWalking)
+            return walkStepRange;
+        else if (isCrouching)
+            return crouchStepRange;
+        else
+            return runStepRange;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (!debug)
+            return;
+
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, walkStepRange);
+        Gizmos.DrawWireSphere(transform.position, runStepRange);
+        Gizmos.DrawWireSphere(transform.position, crouchStepRange);
     }
 
     private void OnMove(InputValue value)
@@ -121,10 +160,7 @@ public class PlayerMover : MonoBehaviour
         if (isCrouching)
         {
             isCrouching = false;
-            applySpeed = walkSpeed;
-            anim.SetBool("Crouching", false);
-            controller.center = new Vector3(0f, 1f, 0f);
-            controller.height = 1.8f;
+            StartCoroutine(CrouchRoutine());
             return;
         }
         anim.SetTrigger("IsJump");
@@ -144,7 +180,7 @@ public class PlayerMover : MonoBehaviour
         {
             applySpeed = walkSpeed;
             anim.SetBool("Crouching", false);
-            controller.center = new Vector3(0f, 1f, 0f);
+            controller.center = new Vector3(0f, 0.9f, 0f);
             controller.height = 1.8f;
         }
         yield return null;
