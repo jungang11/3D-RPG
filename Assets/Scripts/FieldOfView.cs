@@ -39,7 +39,6 @@ public class FieldOfView : MonoBehaviour
                 continue;
 
             Debug.DrawRay(transform.position, dirTarget * distToTarget, Color.red);
-            Debug.Log("시야에 들어옴");
         }
     }
 
